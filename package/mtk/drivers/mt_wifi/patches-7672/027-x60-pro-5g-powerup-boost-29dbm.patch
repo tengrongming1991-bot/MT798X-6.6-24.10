@@ -1,0 +1,76 @@
+--- a/mt_wifi/mac/mt_fmac.c
++++ b/mt_wifi/mac/mt_fmac.c
+@@ -4482,6 +4482,73 @@
+ 		"ucBandIdx incorrect!!!\n");
+ 		return;
+ 	}
++
++	/*
++	 * Ruijie RG-X60 Pro (MT7986 AX6000 + MT7976 radio) - 5G power boost
++	 * ------------------------------------------------------------------
++	 * BAND1 is the 5G radio (interface rax0).  BAND0 is 2.4G (ra0) and is
++	 * deliberately NOT touched, so 2.4G output stays exactly as before.
++	 *
++	 * The factory EEPROM calibration caps 5G at 26.5 dBm while the
++	 * Single-SKU table (patch 026) already allows 29 dBm.  The PowerUp
++	 * table adds on top of the calibrated base power, so
++	 *      26.5 dBm + 2.5 dBm = 29 dBm
++	 *
++	 * Unit of the table entries is 0.5 dB, hence the value 5 == +2.5 dB.
++	 *
++	 * Safety: this only fills an in-RAM table that is pushed to the WiFi
++	 * firmware through the MCU command channel when the AP comes up.
++	 * Nothing is written to the Factory flash partition.  The change is
++	 * gone after a reboot into stock firmware and can be undone at any
++	 * time with:
++	 *      iwpriv rax0 set TxPowerBoostCtrl=1:3:2:12:0:0:0:0:0:0:0:0:0:0:0:0
++	 *
++	 * NOTE: this hook is board specific.  It must not be shipped on
++	 * firmware images for other MT7986 devices.
++	 */
++#ifndef X60_PRO_5G_TX_PWR_UP
++#define X60_PRO_5G_TX_PWR_UP 5
++#endif /* X60_PRO_5G_TX_PWR_UP */
++
++	if (ucBandIdx == BAND1) {
++		UINT32 u4Idx;
++
++		for (u4Idx = 0; u4Idx < SINGLE_SKU_FILL_TABLE_CCK_LENGTH_V1; u4Idx++)
++			pAd->CommonCfg.PowerBoostParamV1[BAND1].cPowerUpCck[u4Idx] = X60_PRO_5G_TX_PWR_UP;
++		for (u4Idx = 0; u4Idx < SINGLE_SKU_FILL_TABLE_OFDM_LENGTH_V1; u4Idx++)
++			pAd->CommonCfg.PowerBoostParamV1[BAND1].cPowerUpOfdm[u4Idx] = X60_PRO_5G_TX_PWR_UP;
++		for (u4Idx = 0; u4Idx < SINGLE_SKU_FILL_TABLE_HT20_LENGTH_V1; u4Idx++)
++			pAd->CommonCfg.PowerBoostParamV1[BAND1].cPowerUpHt20[u4Idx] = X60_PRO_5G_TX_PWR_UP;
++		for (u4Idx = 0; u4Idx < SINGLE_SKU_FILL_TABLE_HT40_LENGTH_V1; u4Idx++)
++			pAd->CommonCfg.PowerBoostParamV1[BAND1].cPowerUpHt40[u4Idx] = X60_PRO_5G_TX_PWR_UP;
++		for (u4Idx = 0; u4Idx < SINGLE_SKU_FILL_TABLE_VHT20_LENGTH_V1; u4Idx++)
++			pAd->CommonCfg.PowerBoostParamV1[BAND1].cPowerUpVht20[u4Idx] = X60_PRO_5G_TX_PWR_UP;
++		for (u4Idx = 0; u4Idx < SINGLE_SKU_FILL_TABLE_VHT40_LENGTH_V1; u4Idx++)
++			pAd->CommonCfg.PowerBoostParamV1[BAND1].cPowerUpVht40[u4Idx] = X60_PRO_5G_TX_PWR_UP;
++		for (u4Idx = 0; u4Idx < SINGLE_SKU_FILL_TABLE_VHT80_LENGTH_V1; u4Idx++)
++			pAd->CommonCfg.PowerBoostParamV1[BAND1].cPowerUpVht80[u4Idx] = X60_PRO_5G_TX_PWR_UP;
++		for (u4Idx = 0; u4Idx < SINGLE_SKU_FILL_TABLE_VHT160_LENGTH_V1; u4Idx++)
++			pAd->CommonCfg.PowerBoostParamV1[BAND1].cPowerUpVht160[u4Idx] = X60_PRO_5G_TX_PWR_UP;
++		for (u4Idx = 0; u4Idx < SINGLE_SKU_FILL_TABLE_RU26_LENGTH_V1; u4Idx++)
++			pAd->CommonCfg.PowerBoostParamV1[BAND1].cPowerUpRU26[u4Idx] = X60_PRO_5G_TX_PWR_UP;
++		for (u4Idx = 0; u4Idx < SINGLE_SKU_FILL_TABLE_RU52_LENGTH_V1; u4Idx++)
++			pAd->CommonCfg.PowerBoostParamV1[BAND1].cPowerUpRU52[u4Idx] = X60_PRO_5G_TX_PWR_UP;
++		for (u4Idx = 0; u4Idx < SINGLE_SKU_FILL_TABLE_RU106_LENGTH_V1; u4Idx++)
++			pAd->CommonCfg.PowerBoostParamV1[BAND1].cPowerUpRU106[u4Idx] = X60_PRO_5G_TX_PWR_UP;
++		for (u4Idx = 0; u4Idx < SINGLE_SKU_FILL_TABLE_RU242_LENGTH_V1; u4Idx++)
++			pAd->CommonCfg.PowerBoostParamV1[BAND1].cPowerUpRU242[u4Idx] = X60_PRO_5G_TX_PWR_UP;
++		for (u4Idx = 0; u4Idx < SINGLE_SKU_FILL_TABLE_RU484_LENGTH_V1; u4Idx++)
++			pAd->CommonCfg.PowerBoostParamV1[BAND1].cPowerUpRU484[u4Idx] = X60_PRO_5G_TX_PWR_UP;
++		for (u4Idx = 0; u4Idx < SINGLE_SKU_FILL_TABLE_RU996_LENGTH_V1; u4Idx++)
++			pAd->CommonCfg.PowerBoostParamV1[BAND1].cPowerUpRU996[u4Idx] = X60_PRO_5G_TX_PWR_UP;
++		for (u4Idx = 0; u4Idx < SINGLE_SKU_FILL_TABLE_RU996X2_LENGTH_V1; u4Idx++)
++			pAd->CommonCfg.PowerBoostParamV1[BAND1].cPowerUpRU996X2[u4Idx] = X60_PRO_5G_TX_PWR_UP;
++
++		MTWF_DBG(pAd, DBG_CAT_HW, DBG_SUBCAT_ALL, DBG_LVL_INFO,
++			"%s: band1(5G) PowerUp table set to +%d.%d dB\n",
++			__func__, X60_PRO_5G_TX_PWR_UP / 2, (X60_PRO_5G_TX_PWR_UP % 2) * 5);
++	}
++
+ 	/* config Power boost table via profile */
+ 	TxPwrUpCtrl(pAd, ucBandIdx, POWER_UP_CATE_V1_CCK,
+ 				&(pAd->CommonCfg.PowerBoostParamV1[ucBandIdx].cPowerUpCck[0]),
